@@ -57,3 +57,9 @@
   (s/keys :req-un [:ring.response/status
                    :ring.response/headers]
           :opt-un [:ring.response/body]))
+
+;; Handler
+
+(s/fdef :ring/handler
+  :args (s/cat :request :ring/request)
+  :ret  :ring/response)
