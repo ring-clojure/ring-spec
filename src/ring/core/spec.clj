@@ -13,6 +13,12 @@
 (defn- gen-string-uri []
   (gen/fmap str/join (gen/vector (gen/elements valid-uri-chars))))
 
+(defn- gen-query-string []
+  (->> (gen/tuple (gen/not-empty (gen/string-alphanumeric)) (gen-string-uri))
+       (gen/fmap (fn [[k v]] (str k "=" v)))
+       (gen/vector)
+       (gen/fmap #(str/join "&" %))))
+
 ;; Request
 
 (s/def :ring.request/server-port (s/int-in 1 65535))
@@ -23,7 +29,9 @@
   (-> (s/and string? #(str/starts-with? % "/"))
       (s/with-gen (fn [] (gen/fmap #(str "/" %) (gen-string-uri))))))
 
-(s/def :ring.request/query-string    string?)
+(s/def :ring.request/query-string
+  (s/with-gen string? gen-query-string))
+
 (s/def :ring.request/scheme          #{:http :https})
 (s/def :ring.request/method          (s/and keyword? (comp lower-case? name)))
 (s/def :ring.request/protocol        string?)
