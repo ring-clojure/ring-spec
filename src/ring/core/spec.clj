@@ -1,6 +1,7 @@
 (ns ring.core.spec
   (:require [clojure.spec :as s]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [ring.core.protocols :as p]))
 
 (defn- lower-case? [s]
   (= s (str/lower-case s)))
@@ -40,3 +41,19 @@
           :opt-un [:ring.request/query-string
                    :ring.request/ssl-client-cert
                    :ring.request/body]))
+
+;; Response
+
+(s/def :ring.response/status       (s/and nat-int? #(<= 100 % 599)))
+
+(s/def :ring.response/header-name  string?)
+(s/def :ring.response/header-value (s/or :one string? :many (s/coll-of string?)))
+(s/def :ring.response/headers      (s/map-of :ring.response/header-name
+                                             :ring.response/header-value))
+
+(s/def :ring.response/body         #(satisfies? p/StreamableResponseBody %))
+
+(s/def :ring/response
+  (s/keys :req-un [:ring.response/status
+                   :ring.response/headers]
+          :opt-un [:ring.response/body]))
