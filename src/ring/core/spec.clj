@@ -8,7 +8,7 @@
 
 ;; Request
 
-(s/def :ring.request/server-port     (s/and nat-int? #(<= % 65535)))
+(s/def :ring.request/server-port     (s/int-in 1 65536))
 (s/def :ring.request/server-name     string?)
 (s/def :ring.request/remote-addr     string?)
 
@@ -44,7 +44,7 @@
 
 ;; Response
 
-(s/def :ring.response/status       (s/and nat-int? #(<= 100 % 599)))
+(s/def :ring.response/status       (s/int-in 100 600))
 
 (s/def :ring.response/header-name  string?)
 (s/def :ring.response/header-value (s/or :one string? :many (s/coll-of string?)))
