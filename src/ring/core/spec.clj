@@ -1,18 +1,28 @@
 (ns ring.core.spec
   (:require [clojure.spec :as s]
+            [clojure.spec.gen :as gen]
             [clojure.string :as str]
             [ring.core.protocols :as p]))
 
 (defn- lower-case? [s]
   (= s (str/lower-case s)))
 
+(def ^:private valid-uri-chars
+  (map char (concat (range 43 57) (range 65 90) (range 97 22) [95 126])))
+
+(defn- gen-string-uri []
+  (gen/fmap str/join (gen/vector (gen/elements valid-uri-chars))))
+
 ;; Request
 
-(s/def :ring.request/server-port     (s/int-in 1 65536))
-(s/def :ring.request/server-name     string?)
-(s/def :ring.request/remote-addr     string?)
+(s/def :ring.request/server-port (s/int-in 1 65535))
+(s/def :ring.request/server-name string?)
+(s/def :ring.request/remote-addr string?)
 
-(s/def :ring.request/uri             (s/and string? #(str/starts-with? % "/")))
+(s/def :ring.request/uri
+  (-> (s/and string? #(str/starts-with? % "/"))
+      (s/with-gen (fn [] (gen/fmap #(str "/" %) (gen-string-uri))))))
+
 (s/def :ring.request/query-string    string?)
 (s/def :ring.request/scheme          #{:http :https})
 (s/def :ring.request/method          (s/and keyword? (comp lower-case? name)))
