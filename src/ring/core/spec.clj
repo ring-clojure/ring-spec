@@ -60,6 +60,32 @@
 
 ;; Handler
 
-(s/fdef :ring/handler
-  :args (s/cat :request :ring/request)
-  :ret  :ring/response)
+(s/def :ring.sync.handler/args
+  (s/cat :request :ring/request))
+
+(s/def :ring.async.handler/args
+  (s/cat :request :ring/request
+         :respond (s/fspec :args (s/cat :response :ring/response) :ret any?)
+         :raise   (s/fspec :args (s/cat :exception #(instance? Throwable %)) :ret any?)))
+
+(s/def :ring.sync.handler/ret  :ring/response)
+(s/def :ring.async.handler/ret any?)
+
+(s/fdef :ring.sync/handler
+  :args :ring.sync.handler/args
+  :ret  :ring.sync.handler/ret)
+
+(s/fdef :ring.async/handler
+  :args :ring.async.handler/args
+  :ret  :ring.async.handler/ret)
+
+(s/fdef :ring.sync+async/handler
+  :args (s/or :sync  :ring.sync.handler/args :async :ring.async.handler/args)
+  :ret  (s/or :async :ring.sync.handler/ret  :async :ring.async.handler/ret)
+  :fn   (s/or :sync  (s/keys :req-un [:ring.sync.handler/args :ring.sync.handler/ret])
+              :async (s/keys :req-un [:ring.async.handler/args :ring.async.handler/ret])))
+
+(s/def :ring/handler
+  (s/or :sync :ring.sync/handler
+        :async :ring.async/handler
+        :sync+async :ring.sync+async/handler))
