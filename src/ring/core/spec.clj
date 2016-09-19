@@ -47,8 +47,6 @@
 (s/def :ring.request/protocol
   (s/with-gen string? #(gen/return "HTTP/1.1")))
 
-(s/def :ring.request/ssl-client-cert #(instance? java.security.cert.X509Certificate %))
-
 (s/def :ring.request/header-name     (s/and string? lower-case?))
 (s/def :ring.request/header-value    string?)
 (s/def :ring.request/headers         (s/map-of :ring.request/header-name
@@ -68,7 +66,6 @@
                    :ring.request/headers
                    :ring.request/request-method]
           :opt-un [:ring.request/query-string
-                   :ring.request/ssl-client-cert
                    :ring.request/body]))
 
 ;; Response
