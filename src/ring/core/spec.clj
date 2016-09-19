@@ -8,7 +8,7 @@
   (= s (str/lower-case s)))
 
 (def ^:private valid-uri-chars
-  (map char (concat (range 43 57) (range 65 90) (range 97 22) [95 126])))
+  (map char (concat (range 43 57) (range 65 90) (range 97 122) [95 126])))
 
 (defn- gen-string-uri []
   (gen/fmap str/join (gen/vector (gen/elements valid-uri-chars))))
