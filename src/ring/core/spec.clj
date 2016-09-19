@@ -125,7 +125,11 @@
   (s/map-of :ring.response/header-name :ring.response/header-value))
 
 (s/def :ring.response/body
-  #(satisfies? p/StreamableResponseBody %))
+  (-> #(satisfies? p/StreamableResponseBody %)
+      (s/with-gen #(gen/one-of [(gen/return nil)
+                                (gen/string-ascii)
+                                (gen/list (gen/string-ascii))
+                                (gen-input-stream)]))))
 
 (s/def :ring/response
   (s/keys :req-un [:ring.response/status
