@@ -31,6 +31,9 @@
 (defn- gen-method []
   (gen/fmap keyword (gen/not-empty (gen-string lower-case-chars))))
 
+(defn- gen-input-stream []
+  (gen/fmap #(java.io.ByteArrayInputStream. %) (gen/bytes)))
+
 ;; Request
 
 (s/def :ring.request/server-port (s/int-in 1 65535))
@@ -58,7 +61,8 @@
 (s/def :ring.request/headers         (s/map-of :ring.request/header-name
                                                :ring.request/header-value))
 
-(s/def :ring.request/body            #(instance? java.io.InputStream %))
+(s/def :ring.request/body
+  (s/with-gen #(instance? java.io.InputStream %) gen-input-stream))
 
 (s/def :ring.request/request-method  :ring.request/method)
 
