@@ -7,17 +7,23 @@
 (defn- lower-case? [s]
   (= s (str/lower-case s)))
 
-(def ^:private valid-uri-chars
+(def ^:private lower-case-chars
+  (map char (range 97 122)))
+
+(def ^:private uri-chars
   (map char (concat (range 43 57) (range 65 90) (range 97 122) [95 126])))
 
-(defn- gen-string-uri []
-  (gen/fmap str/join (gen/vector (gen/elements valid-uri-chars))))
+(defn- gen-string [chars]
+  (gen/fmap str/join (gen/vector (gen/elements chars))))
 
 (defn- gen-query-string []
-  (->> (gen/tuple (gen/not-empty (gen/string-alphanumeric)) (gen-string-uri))
+  (->> (gen/tuple (gen/not-empty (gen/string-alphanumeric)) (gen-string uri-chars))
        (gen/fmap (fn [[k v]] (str k "=" v)))
        (gen/vector)
        (gen/fmap #(str/join "&" %))))
+
+(defn- gen-method []
+  (gen/fmap keyword (gen/not-empty (gen-string lower-case-chars))))
 
 ;; Request
 
@@ -27,14 +33,18 @@
 
 (s/def :ring.request/uri
   (-> (s/and string? #(str/starts-with? % "/"))
-      (s/with-gen (fn [] (gen/fmap #(str "/" %) (gen-string-uri))))))
+      (s/with-gen (fn [] (gen/fmap #(str "/" %) (gen-string uri-chars))))))
 
 (s/def :ring.request/query-string
   (s/with-gen string? gen-query-string))
 
-(s/def :ring.request/scheme          #{:http :https})
-(s/def :ring.request/method          (s/and keyword? (comp lower-case? name)))
-(s/def :ring.request/protocol        string?)
+(s/def :ring.request/scheme #{:http :https})
+
+(s/def :ring.request/method
+  (-> (s/and keyword? (comp lower-case? name))
+      (s/with-gen gen-method)))
+
+(s/def :ring.request/protocol string?)
 
 (s/def :ring.request/ssl-client-cert #(instance? java.security.cert.X509Certificate %))
 
