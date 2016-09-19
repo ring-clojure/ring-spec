@@ -77,7 +77,7 @@
 
 (s/def :ring.request/scheme #{:http :https})
 
-(s/def :ring.request/method
+(s/def :ring.request/request-method
   (-> (s/and keyword? (comp lower-case? name))
       (s/with-gen gen-method)))
 
@@ -97,8 +97,6 @@
 
 (s/def :ring.request/body
   (s/with-gen #(instance? java.io.InputStream %) gen-input-stream))
-
-(s/def :ring.request/request-method  :ring.request/method)
 
 (s/def :ring/request
   (s/keys :req-un [:ring.request/server-port
