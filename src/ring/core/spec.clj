@@ -7,11 +7,17 @@
 (defn- lower-case? [s]
   (= s (str/lower-case s)))
 
+(defn- char-range [a b]
+  (map char (range (int a) (int b))))
+
 (def ^:private lower-case-chars
-  (map char (range 97 122)))
+  (char-range \a \z))
 
 (def ^:private uri-chars
-  (map char (concat (range 43 57) (range 65 90) (range 97 122) [95 126])))
+  (concat (char-range \A \Z)
+          (char-range \a \z)
+          (char-range \0 \9)
+          [\- \. \_ \~ \/ \+ \,]))
 
 (defn- gen-string [chars]
   (gen/fmap str/join (gen/vector (gen/elements chars))))
