@@ -112,14 +112,20 @@
 
 ;; Response
 
-(s/def :ring.response/status       (s/int-in 100 600))
+(s/def :ring.response/status (s/int-in 100 600))
 
-(s/def :ring.response/header-name  string?)
-(s/def :ring.response/header-value (s/or :one string? :many (s/coll-of string?)))
-(s/def :ring.response/headers      (s/map-of :ring.response/header-name
-                                             :ring.response/header-value))
+(s/def :ring.response/header-name
+  (-> (s/and string? not-empty field-name-chars?)
+      (s/with-gen #(gen/not-empty (gen-string token-chars)))))
 
-(s/def :ring.response/body         #(satisfies? p/StreamableResponseBody %))
+(s/def :ring.response/header-value
+  (s/or :one :ring.request/header-value :many (s/coll-of :ring.request/header-value)))
+
+(s/def :ring.response/headers
+  (s/map-of :ring.response/header-name :ring.response/header-value))
+
+(s/def :ring.response/body
+  #(satisfies? p/StreamableResponseBody %))
 
 (s/def :ring/response
   (s/keys :req-un [:ring.response/status
