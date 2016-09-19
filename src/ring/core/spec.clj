@@ -62,6 +62,16 @@
 (defn- gen-input-stream []
   (gen/fmap #(java.io.ByteArrayInputStream. %) (gen/bytes)))
 
+;; HTTP
+
+(s/def :ring.http/field-name
+  (-> (s/and string? not-empty field-name-chars?)
+      (s/with-gen #(gen/not-empty (gen-string field-name-chars)))))
+
+(s/def :ring.http/field-value
+  (-> (s/and string? field-value-chars? trimmed?)
+      (s/with-gen #(gen/fmap str/trim (gen-string field-value-chars*)))))
+
 ;; Request
 
 (s/def :ring.request/server-port (s/int-in 1 65535))
@@ -85,12 +95,10 @@
   (s/with-gen string? #(gen/return "HTTP/1.1")))
 
 (s/def :ring.request/header-name
-  (-> (s/and string? not-empty lower-case? field-name-chars?)
-      (s/with-gen #(gen/fmap str/lower-case (gen/not-empty (gen-string token-chars))))))
+  (-> (s/and :ring.http/field-name lower-case?)
+      (s/with-gen #(gen/fmap str/lower-case (s/gen :ring.http/field-name)))))
 
-(s/def :ring.request/header-value
-  (-> (s/and string? field-value-chars? trimmed?)
-      (s/with-gen #(gen/fmap str/trim (gen-string field-value-chars*)))))
+(s/def :ring.request/header-value :ring.http/field-value)
 
 (s/def :ring.request/headers
   (s/map-of :ring.request/header-name :ring.request/header-value))
@@ -114,12 +122,10 @@
 
 (s/def :ring.response/status (s/int-in 100 600))
 
-(s/def :ring.response/header-name
-  (-> (s/and string? not-empty field-name-chars?)
-      (s/with-gen #(gen/not-empty (gen-string token-chars)))))
+(s/def :ring.response/header-name :ring.http/field-name)
 
 (s/def :ring.response/header-value
-  (s/or :one :ring.request/header-value :many (s/coll-of :ring.request/header-value)))
+  (s/or :one :ring.http/field-value :many (s/coll-of :ring.http/field-value)))
 
 (s/def :ring.response/headers
   (s/map-of :ring.response/header-name :ring.response/header-value))
