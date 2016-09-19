@@ -44,7 +44,8 @@
   (-> (s/and keyword? (comp lower-case? name))
       (s/with-gen gen-method)))
 
-(s/def :ring.request/protocol string?)
+(s/def :ring.request/protocol
+  (s/with-gen string? #(gen/return "HTTP/1.1")))
 
 (s/def :ring.request/ssl-client-cert #(instance? java.security.cert.X509Certificate %))
 
