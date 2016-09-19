@@ -2,22 +2,50 @@
   (:require [clojure.spec :as s]
             [clojure.spec.gen :as gen]
             [clojure.string :as str]
-            [ring.core.protocols :as p]))
+            [ring.core.protocols :as p]
+            [ring.util.parsing :as parse]))
 
 (defn- lower-case? [s]
   (= s (str/lower-case s)))
+
+(defn- trimmed? [s]
+  (= s (str/trim s)))
 
 (defn- char-range [a b]
   (map char (range (int a) (int b))))
 
 (def ^:private lower-case-chars
-  (char-range \a \z))
+  (set (char-range \a \z)))
+
+(def ^:private alphanumeric-chars
+  (set (concat (char-range \A \Z) (char-range \a \z) (char-range \0 \9))))
 
 (def ^:private uri-chars
-  (concat (char-range \A \Z)
-          (char-range \a \z)
-          (char-range \0 \9)
-          [\- \. \_ \~ \/ \+ \,]))
+  (into alphanumeric-chars #{\- \. \_ \~ \/ \+ \,}))
+
+(def ^:private field-name-chars
+  (into alphanumeric-chars #{\! \# \$ \% \& \' \* \+ \- \. \^ \_ \` \| \~}))
+
+(def ^:private whitespace-chars
+  #{0x09 0x20})
+
+(def ^:private visible-chars
+  (set (map char (range 0x21 0x7e))))
+
+(def ^:private obs-text-chars
+  (set (map char (range 0x80 0xff))))
+
+(def ^:private field-value-chars*
+  (into whitespace-chars visible-chars))
+
+(def ^:private field-value-chars
+  (into field-value-chars* obs-text-chars))
+
+(defn- field-name-chars? [s]
+  (every? field-name-chars s))
+
+(defn- field-value-chars? [s]
+  (every? field-value-chars s))
 
 (defn- gen-string [chars]
   (gen/fmap str/join (gen/vector (gen/elements chars))))
@@ -56,10 +84,16 @@
 (s/def :ring.request/protocol
   (s/with-gen string? #(gen/return "HTTP/1.1")))
 
-(s/def :ring.request/header-name     (s/and string? lower-case?))
-(s/def :ring.request/header-value    string?)
-(s/def :ring.request/headers         (s/map-of :ring.request/header-name
-                                               :ring.request/header-value))
+(s/def :ring.request/header-name
+  (-> (s/and string? not-empty lower-case? field-name-chars?)
+      (s/with-gen #(gen/fmap str/lower-case (gen/not-empty (gen-string token-chars))))))
+
+(s/def :ring.request/header-value
+  (-> (s/and string? field-value-chars? trimmed?)
+      (s/with-gen #(gen/fmap str/trim (gen-string field-value-chars*)))))
+
+(s/def :ring.request/headers
+  (s/map-of :ring.request/header-name :ring.request/header-value))
 
 (s/def :ring.request/body
   (s/with-gen #(instance? java.io.InputStream %) gen-input-stream))
