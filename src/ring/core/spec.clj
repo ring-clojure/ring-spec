@@ -62,7 +62,13 @@
 (defn- gen-input-stream []
   (gen/fmap #(java.io.ByteArrayInputStream. %) (gen/bytes)))
 
-;; HTTP
+(defn- gen-exception []
+  (gen/fmap (fn [s] (Exception. s)) (gen/string-alphanumeric)))
+
+;; Internal
+
+(s/def :ring.core/error
+  (-> #(instance? Throwable %) (s/with-gen gen-exception)))
 
 (s/def :ring.http/field-name
   (-> (s/and string? not-empty field-name-chars?)
@@ -150,7 +156,7 @@
 (s/def :ring.async.handler/args
   (s/cat :request :ring/request
          :respond (s/fspec :args (s/cat :response :ring/response) :ret any?)
-         :raise   (s/fspec :args (s/cat :exception #(instance? Throwable %)) :ret any?)))
+         :raise   (s/fspec :args (s/cat :error :ring.core/error) :ret any?)))
 
 (s/def :ring.sync.handler/ret  :ring/response)
 (s/def :ring.async.handler/ret any?)
