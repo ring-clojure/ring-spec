@@ -11,7 +11,7 @@ and handlers.
 Add the following dependency to your project file:
 
 ```clojure
-[ring/ring-spec "0.1.0-SNAPSHOT"]
+[ring/ring-spec "0.0.1"]
 ```
 
 ## Usage
