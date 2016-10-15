@@ -12,7 +12,7 @@
   (= s (str/trim s)))
 
 (defn- char-range [a b]
-  (map char (range (int a) (int b))))
+  (map char (range (int a) (inc (int b)))))
 
 (def ^:private lower-case-chars
   (set (char-range \a \z)))
@@ -30,10 +30,10 @@
   #{0x09 0x20})
 
 (def ^:private visible-chars
-  (set (map char (range 0x21 0x7e))))
+  (set (map char (range 0x21 (inc 0x7e)))))
 
 (def ^:private obs-text-chars
-  (set (map char (range 0x80 0xff))))
+  (set (map char (range 0x80 (inc 0xff)))))
 
 (def ^:private field-value-chars*
   (into whitespace-chars visible-chars))
