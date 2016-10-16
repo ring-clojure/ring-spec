@@ -171,7 +171,7 @@
 
 (s/fdef :ring.sync+async/handler
   :args (s/or :sync  :ring.sync.handler/args :async :ring.async.handler/args)
-  :ret  (s/or :async :ring.sync.handler/ret  :async :ring.async.handler/ret)
+  :ret  (s/or :sync  :ring.sync.handler/ret  :async :ring.async.handler/ret)
   :fn   (s/or :sync  (s/keys :req-un [:ring.sync.handler/args :ring.sync.handler/ret])
               :async (s/keys :req-un [:ring.async.handler/args :ring.async.handler/ret])))
 
