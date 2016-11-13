@@ -1,4 +1,4 @@
-(defproject ring-spec "0.0.2"
+(defproject ring/ring-spec "0.0.2"
   :description "Clojure specs for Ring"
   :url "https://github.com/ring-clojure/ring-spec"
   :license {:name "The MIT License"
