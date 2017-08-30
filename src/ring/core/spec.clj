@@ -27,7 +27,7 @@
   (into alphanumeric-chars #{\! \# \$ \% \& \' \* \+ \- \. \^ \_ \` \| \~}))
 
 (def ^:private whitespace-chars
-  #{0x09 0x20})
+  #{(char 0x09) (char 0x20)})
 
 (def ^:private visible-chars
   (set (map char (range 0x21 (inc 0x7e)))))
